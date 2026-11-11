@@ -37,15 +37,16 @@ class VAE_Losses:
 
     @staticmethod
     def kl_loss(mu, sigma):
-        """KL(q(z|x) || N(0, I)); sigma is standard deviation."""
-        variance = sigma.float().square().clamp_min(1e-12)
+        variance = sigma.float().square()
 
-        return 0.5 * (
+        elementwise = 0.5 * (
             mu.float().square()
             + variance
-            - variance.log()
+            - torch.log(variance + 1e-10)
             - 1.0
-        ).mean()
+        )
+
+        return elementwise.flatten(start_dim=1).sum(dim=1).mean()
 
     def compute_losses(
         self,
@@ -69,8 +70,8 @@ class VAE_Losses:
             "recon": F.l1_loss(reconstruction, image),
             "kl": self.kl_loss(mu, sigma),
             "perceptual": self.perceptual_loss(
-                reconstruction * 2.0 - 1.0,
-                image * 2.0 - 1.0,
+                reconstruction,
+                image,
             ),
             "generator_adv": image.new_zeros(()),
         }

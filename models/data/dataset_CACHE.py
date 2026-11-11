@@ -2,7 +2,7 @@ import csv
 import os
 
 from monai.data import Dataset, DataLoader, CacheDataset
-import data.config
+from models.data import config
 
 
 class MioDataset(Dataset):
@@ -79,11 +79,7 @@ def CreateDataloader(
 ):
     folder_paths = []
 
-    csv_path = (
-        f"{opt.dataroot}/{opt.phase}_{opt.district}.csv"
-        if opt.phase == "train"
-        else f"{opt.dataroot}/{opt.phase}.csv"
-    )
+    csv_path = os.path.join(opt.dataroot, f"{opt.phase}.csv")
 
     with open(csv_path, "r") as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -106,18 +102,18 @@ def CreateDataloader(
         ds = CacheDataset(
             data=mio_dataset,
             transform=(
-                data.config.train_transforms
+                config.train_transforms
                 if opt.phase == "train"
-                else data.config.test_transforms
+                else config.test_transforms
             ),
         )
     else:
         ds = Dataset(
             data=mio_dataset,
             transform=(
-                data.config.train_transforms
+                config.train_transforms
                 if opt.phase == "train"
-                else data.config.test_transforms
+                else config.test_transforms
             ),
         )
 
